@@ -7,16 +7,34 @@ BUILD_DIR = build
 
 TARGET = gauss.elf
 
-SRCS = $(SRC_DIR)/main.c
-OBJS = $(BUILD_DIR)/main.o
+MAIN_SRC = $(SRC_DIR)/main.c
+ASM_SRC = $(SRC_DIR)/g_blur.s
+C_SRC = $(SRC_DIR)/g_blur.c
+MAIN_OBJ = $(BUILD_DIR)/main.o
+VARIABLE_OBJ = $(BUILD_DIR)/g_blur.o
 
-all : $(BUILD_DIR) $(TARGET)
+o0 : $(BUILD_DIR) $(MAIN_OBJ)
+	$(CC) $(CFLAGS) $(C_SRC) -O0 -c -o $(VARIABLE_OBJ) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(MAIN_OBJ) $(VARIABLE_OBJ) -o $(TARGET) $(LDFLAGS)
 
-$(TARGET) : $(OBJS)
-	$(CC) $(CFLAGS) $^ -o $@ $(LDFLAGS)
+o1 : $(BUILD_DIR) $(MAIN_OBJ)
+	$(CC) $(CFLAGS) $(C_SRC) -O1 -c -o $(VARIABLE_OBJ) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(MAIN_OBJ) $(VARIABLE_OBJ) -o $(TARGET) $(LDFLAGS)
 
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
-	$(CC) $(CFLAGS) -c $< -o $@
+o2 : $(BUILD_DIR) $(MAIN_OBJ)
+	$(CC) $(CFLAGS) $(C_SRC) -O2 -c -o $(VARIABLE_OBJ) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(MAIN_OBJ) $(VARIABLE_OBJ) -o $(TARGET) $(LDFLAGS)
+
+o3 : $(BUILD_DIR) $(MAIN_OBJ)
+	$(CC) $(CFLAGS) $(C_SRC) -O3 -c -o $(VARIABLE_OBJ) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(MAIN_OBJ) $(VARIABLE_OBJ) -o $(TARGET) $(LDFLAGS)
+
+ofast : $(BUILD_DIR) $(MAIN_OBJ)
+	$(CC) $(CFLAGS) $(C_SRC) -Ofast -c -o $(VARIABLE_OBJ) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(MAIN_OBJ) $(VARIABLE_OBJ) -o $(TARGET) $(LDFLAGS)
+
+$(MAIN_OBJ) : $(MAIN_SRC)
+	$(CC) $(CFLAGS) -c $^ -o $@ $(LDFLAGS)
 
 $(BUILD_DIR) : 
 	mkdir -p $@
