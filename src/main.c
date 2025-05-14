@@ -6,7 +6,10 @@
 #include <zlib.h>
 #include "g_blur.h"
 
+#include <time.h>
+
 #define BLUR_POWER 10
+#define POINTLESS_REPETIONS 1000
 
 typedef enum e_chanell{
     chanell_r = 0,
@@ -64,6 +67,7 @@ int main(int argc, const char **argv)
         fprintf(stderr, "usage: %s input-file output-file\n", argv[0]);
         exit(2);
     }
+
     png_image image;
 
     memset(&image, 0, (sizeof image));
@@ -94,17 +98,29 @@ int main(int argc, const char **argv)
     g_new_buffer = (png_bytep)malloc(image.width * image.height);
     b_new_buffer = (png_bytep)malloc(image.width * image.height);
 
+    double time_spent = 0;
+    clock_t start, end;
+    
+
     for(int i = 0; i < BLUR_POWER; i++){
         copy_chanell_and_expand(image.height, image.width, r_buffer, buffer, chanell_r);
         copy_chanell_and_expand(image.height, image.width, g_buffer, buffer, chanell_g);
         copy_chanell_and_expand(image.height, image.width, b_buffer, buffer, chanell_b);
 
-        gaussian_blur(image.height, image.width, r_new_buffer, r_buffer);
-        gaussian_blur(image.height, image.width, g_new_buffer, g_buffer);
-        gaussian_blur(image.height, image.width, b_new_buffer, b_buffer);
+
+        for(int i = 0; i < POINTLESS_REPETIONS; i++){
+            start = clock();
+            gaussian_blur(image.height, image.width, r_new_buffer, r_buffer);
+            gaussian_blur(image.height, image.width, g_new_buffer, g_buffer);
+            gaussian_blur(image.height, image.width, b_new_buffer, b_buffer);
+            end = clock();
+            time_spent += (double)(end - start) / CLOCKS_PER_SEC;
+        }
 
         recollect(image.height, image.width, buffer, r_new_buffer, g_new_buffer, b_new_buffer);
     }
+
+    printf("Суммарное время, затраченное на выполнение целевой функции: %lf секунд\n", time_spent);
     
     if (png_image_write_to_file(&image, argv[2], 0/*convert_to_8bit*/,
         buffer, 0/*row_stride*/, NULL/*colormap*/) != 0)
