@@ -23,34 +23,35 @@ png_bytep r_new_buffer;
 png_bytep g_new_buffer;
 png_bytep b_new_buffer;
 
-void copy_row_chanell(png_bytep dest, png_bytep src, int wight, e_chanell chanell){
-    int copy_index = 0;
+void copy_row_chanell(png_bytep dest, png_bytep src, png_uint_32 wight, e_chanell chanell){
+    png_uint_32 copy_index = 0;
     dest[copy_index++] = src[0];
-    for(int i = 0; i < wight; i++){
+    for(png_uint_32 i = 0; i < wight; i++){
         dest[copy_index++] = src[i * 4 + chanell];
     }
     dest[copy_index++] = src[(wight - 1) * 4 + chanell];
 }
 
-void copy_chanell_and_expand(int height, int wight, png_bytep dest, png_bytep data, e_chanell chanell){
-    int new_wight = wight + 2;
+void copy_chanell_and_expand(png_uint_32 height, png_uint_32 wight, png_bytep dest, png_bytep data, e_chanell chanell){
+    png_uint_32 new_wight = wight + 2;
     copy_row_chanell(dest, data, wight, chanell);
-    for(int i = 0; i < height; i++){
+    for(png_uint_32 i = 0; i < height; i++){
         copy_row_chanell(dest + ((i + 1) * new_wight), data + (i * wight * 4), wight, chanell);
     }
+    copy_row_chanell(dest + (height + 1) * new_wight, data + ((height - 1) * wight * 4), wight, chanell);
 }
 
-png_bytep copy_chanell(int height, int wight, png_bytep data, e_chanell chanell){
-    int size = height * wight;
+png_bytep copy_chanell(png_uint_32 height, png_uint_32 wight, png_bytep data, e_chanell chanell){
+    png_uint_32 size = height * wight;
     png_bytep res = (png_bytep)malloc(size);
-    for(int i = 0; i < size; i++){
+    for(png_uint_32 i = 0; i < size; i++){
         res[i] = data[i * 4 + chanell];
     }
     return res;
 }
 
-void recollect(int height, int wight, png_bytep dest, png_bytep red, png_bytep green, png_bytep blue){
-    for(int i = 0; i < height * wight; i++){
+void recollect(png_uint_32 height, png_uint_32 wight, png_bytep dest, png_bytep red, png_bytep green, png_bytep blue){
+    for(png_uint_32 i = 0; i < height * wight; i++){
         dest[i * 4 + chanell_r] = red[i];
         dest[i * 4 + chanell_g] = green[i];
         dest[i * 4 + chanell_b] = blue[i];

@@ -1,9 +1,9 @@
 #include "g_blur.h"
 
-void gaussian_blur(int height, int wight, png_bytep dest, png_bytep src){
-    int src_wight = wight + 2;
-    for(int i = 0; i < height; i++){
-        for(int j = 0; j < wight; j++){
+void gaussian_blur(png_uint_32 height, png_uint_32 wight, png_bytep dest, png_bytep src){
+    png_uint_32 src_wight = wight + 2;
+    for(png_uint_32 i = 0; i < height; i++){
+        for(png_uint_32 j = 0; j < wight; j++){
             int dest_index = i * wight + j;
             int src_index = i * src_wight + j;
             int src_next_row = (i + 1) * src_wight + j;
