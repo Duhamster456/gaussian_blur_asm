@@ -6,6 +6,8 @@
 #include <zlib.h>
 #include "g_blur.h"
 
+#define BLUR_POWER 10
+
 typedef enum e_chanell{
     chanell_r = 0,
     chanell_g = 1,
@@ -30,14 +32,12 @@ void copy_row_chanell(png_bytep dest, png_bytep src, int wight, e_chanell chanel
     dest[copy_index++] = src[(wight - 1) * 4 + chanell];
 }
 
-png_bytep copy_chanell_and_expand(int height, int wight, png_bytep data, e_chanell chanell){
-    png_bytep res = (png_bytep)malloc(height * wight + height * 2 + wight * 2 + 4);
+void copy_chanell_and_expand(int height, int wight, png_bytep dest, png_bytep data, e_chanell chanell){
     int new_wight = wight + 2;
-    copy_row_chanell(res, data, wight, chanell);
+    copy_row_chanell(dest, data, wight, chanell);
     for(int i = 0; i < height; i++){
-        copy_row_chanell(res + ((i + 1) * new_wight), data + (i * wight * 4), wight, chanell);
+        copy_row_chanell(dest + ((i + 1) * new_wight), data + (i * wight * 4), wight, chanell);
     }
-    return res;
 }
 
 png_bytep copy_chanell(int height, int wight, png_bytep data, e_chanell chanell){
@@ -85,29 +85,26 @@ int main(int argc, const char **argv)
             free(buffer);
     }
 
-    
-
-    r_buffer = copy_chanell_and_expand(image.height, image.width, buffer, chanell_r);
-    g_buffer = copy_chanell_and_expand(image.height, image.width, buffer, chanell_g);
-    b_buffer = copy_chanell_and_expand(image.height, image.width, buffer, chanell_b);
-
-    png_image image2 = image;
-    image2.format = PNG_FORMAT_GRAY;
-    image2.height += 2;
-    image2.width += 2;
-    png_image_write_to_file(&image2, "debug/red.png", 0, r_buffer, 0, NULL);
-    png_image_write_to_file(&image2, "debug/green.png", 0, g_buffer, 0, NULL);
-    png_image_write_to_file(&image2, "debug/blue.png", 0, b_buffer, 0, NULL);
+    r_buffer = (png_bytep)malloc((image.width + 2) * (image.height + 2));
+    g_buffer = (png_bytep)malloc((image.width + 2) * (image.height + 2));
+    b_buffer = (png_bytep)malloc((image.width + 2) * (image.height + 2));
 
     r_new_buffer = (png_bytep)malloc(image.width * image.height);
     g_new_buffer = (png_bytep)malloc(image.width * image.height);
     b_new_buffer = (png_bytep)malloc(image.width * image.height);
 
-    gaussian_blur(image.height, image.width, r_new_buffer, r_buffer);
-    gaussian_blur(image.height, image.width, g_new_buffer, g_buffer);
-    gaussian_blur(image.height, image.width, b_new_buffer, b_buffer);
+    for(int i = 0; i < BLUR_POWER; i++){
+        copy_chanell_and_expand(image.height, image.width, r_buffer, buffer, chanell_r);
+        copy_chanell_and_expand(image.height, image.width, g_buffer, buffer, chanell_g);
+        copy_chanell_and_expand(image.height, image.width, b_buffer, buffer, chanell_b);
 
-    recollect(image.height, image.width, buffer, r_new_buffer, g_new_buffer, b_new_buffer);
+        gaussian_blur(image.height, image.width, r_new_buffer, r_buffer);
+        gaussian_blur(image.height, image.width, g_new_buffer, g_buffer);
+        gaussian_blur(image.height, image.width, b_new_buffer, b_buffer);
+
+        recollect(image.height, image.width, buffer, r_new_buffer, g_new_buffer, b_new_buffer);
+    }
+    
     if (png_image_write_to_file(&image, argv[2], 0/*convert_to_8bit*/,
         buffer, 0/*row_stride*/, NULL/*colormap*/) != 0)
     {
