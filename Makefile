@@ -2,13 +2,16 @@ CC = gcc
 CFLAGS = -Wall -Wextra -Werror
 LDFLAGS = -L/usr/local/lib/libpng16.a -lpng16
 
+AS = nasm
+ASFLAGS = -f elf64
+
 SRC_DIR = src
 BUILD_DIR = build
 
 TARGET = gauss.elf
 
 MAIN_SRC = $(SRC_DIR)/main.c
-ASM_SRC = $(SRC_DIR)/g_blur.s
+ASM_SRC = $(SRC_DIR)/g_blur.asm
 C_SRC = $(SRC_DIR)/g_blur.c
 MAIN_OBJ = $(BUILD_DIR)/main.o
 VARIABLE_OBJ = $(BUILD_DIR)/g_blur.o
@@ -31,6 +34,10 @@ o3 : $(BUILD_DIR) $(MAIN_OBJ)
 
 ofast : $(BUILD_DIR) $(MAIN_OBJ)
 	$(CC) $(CFLAGS) $(C_SRC) -Ofast -c -o $(VARIABLE_OBJ) $(LDFLAGS)
+	$(CC) $(CFLAGS) $(MAIN_OBJ) $(VARIABLE_OBJ) -o $(TARGET) $(LDFLAGS)
+
+asm : $(BUILD_DIR) $(MAIN_OBJ)
+	$(AS) $(ASFLAGS) $(ASM_SRC) -o $(VARIABLE_OBJ)
 	$(CC) $(CFLAGS) $(MAIN_OBJ) $(VARIABLE_OBJ) -o $(TARGET) $(LDFLAGS)
 
 $(MAIN_OBJ) : $(MAIN_SRC)

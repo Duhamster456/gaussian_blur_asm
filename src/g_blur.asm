@@ -18,13 +18,13 @@ gaussian_blur:
     r8_loop:
     ; rax = i * wight + dest
     mov rax, r8
-    mul rax, rsi
+    ;mul rax, rsi!!!!!!!!!!!!!!!!!!
     add rax, rdx
 
     ; r10 = i * (wight + 2) + src
     mov r10, rsi
     add r10, 2
-    mul r10, r8
+    ;mul r10, r8!!!!!!!!!!!!!!!!!!!
     add r10, rcx
 
     xor r9, r9
