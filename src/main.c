@@ -8,8 +8,9 @@
 
 #include <time.h>
 
-#define BLUR_POWER 7
-#define POINTLESS_REPETIONS 2
+#define PRINT_HELP \
+printf("Usage: %s input_file out_file blur_power repetitions_number\n", argv[0]); \
+exit(0); \
 
 typedef enum e_chanell{
     chanell_r = 0,
@@ -35,22 +36,24 @@ int main(int argc, const char **argv)
 {
     const char *input_name;
     const char *output_name;
+    int blur_power;
+    int repetitions;
 
-    switch(argc){
-        case 1:
-        input_name = "pictures/cat.png";
-        output_name = "pictures/res.png";
-        break;
+    if(argc >= 2) input_name = argv[1];
+    else input_name = "pictures/cat.png";
 
-        case 3:
-        input_name = argv[1];
-        output_name = argv[2];
-        break;
+    if(argc >= 3) output_name = argv[2];
+    else output_name = "pictures/res.png";
 
-        default:
-        fprintf(stderr, "usage: %s input-file output-file\n", argv[0]);
-        exit(2);
+    if(argc >= 4){
+        if(sscanf(argv[3], "%d", &blur_power) != 1) {PRINT_HELP};
     }
+    else blur_power = 5;
+
+    if(argc >= 4){
+        if(sscanf(argv[4], "%d", &repetitions) != 1) {PRINT_HELP};
+    }
+    else blur_power = 1;
 
     png_image image;
 
@@ -86,13 +89,13 @@ int main(int argc, const char **argv)
     clock_t start, end;
     
 
-    for(int i = 0; i < BLUR_POWER; i++){
+    for(int i = 0; i < blur_power; i++){
         copy_chanell_and_expand(image.height, image.width, r_buffer, buffer, chanell_r);
         copy_chanell_and_expand(image.height, image.width, g_buffer, buffer, chanell_g);
         copy_chanell_and_expand(image.height, image.width, b_buffer, buffer, chanell_b);
 
 
-        for(int i = 0; i < POINTLESS_REPETIONS; i++){
+        for(int i = 0; i < repetitions; i++){
             start = clock();
             gaussian_blur(image.height, image.width, r_new_buffer, r_buffer);
             gaussian_blur(image.height, image.width, g_new_buffer, g_buffer);
