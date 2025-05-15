@@ -8,8 +8,8 @@
 
 #include <time.h>
 
-#define BLUR_POWER 3
-#define POINTLESS_REPETIONS 100
+#define BLUR_POWER 7
+#define POINTLESS_REPETIONS 2
 
 typedef enum e_chanell{
     chanell_r = 0,
@@ -26,40 +26,10 @@ png_bytep r_new_buffer;
 png_bytep g_new_buffer;
 png_bytep b_new_buffer;
 
-void copy_row_chanell(png_bytep dest, png_bytep src, png_uint_32 wight, e_chanell chanell){
-    png_uint_32 copy_index = 0;
-    dest[copy_index++] = src[0];
-    for(png_uint_32 i = 0; i < wight; i++){
-        dest[copy_index++] = src[i * 4 + chanell];
-    }
-    dest[copy_index++] = src[(wight - 1) * 4 + chanell];
-}
-
-void copy_chanell_and_expand(png_uint_32 height, png_uint_32 wight, png_bytep dest, png_bytep data, e_chanell chanell){
-    png_uint_32 new_wight = wight + 2;
-    copy_row_chanell(dest, data, wight, chanell);
-    for(png_uint_32 i = 0; i < height; i++){
-        copy_row_chanell(dest + ((i + 1) * new_wight), data + (i * wight * 4), wight, chanell);
-    }
-    copy_row_chanell(dest + (height + 1) * new_wight, data + ((height - 1) * wight * 4), wight, chanell);
-}
-
-png_bytep copy_chanell(png_uint_32 height, png_uint_32 wight, png_bytep data, e_chanell chanell){
-    png_uint_32 size = height * wight;
-    png_bytep res = (png_bytep)malloc(size);
-    for(png_uint_32 i = 0; i < size; i++){
-        res[i] = data[i * 4 + chanell];
-    }
-    return res;
-}
-
-void recollect(png_uint_32 height, png_uint_32 wight, png_bytep dest, png_bytep red, png_bytep green, png_bytep blue){
-    for(png_uint_32 i = 0; i < height * wight; i++){
-        dest[i * 4 + chanell_r] = red[i];
-        dest[i * 4 + chanell_g] = green[i];
-        dest[i * 4 + chanell_b] = blue[i];
-    };
-}
+void copy_row_chanell(png_bytep dest, png_bytep src, png_uint_32 wight, e_chanell chanell);
+void copy_chanell_and_expand(png_uint_32 height, png_uint_32 wight, png_bytep dest, png_bytep data, e_chanell chanell);
+png_bytep copy_chanell(png_uint_32 height, png_uint_32 wight, png_bytep data, e_chanell chanell);
+void recollect(png_uint_32 height, png_uint_32 wight, png_bytep dest, png_bytep red, png_bytep green, png_bytep blue);
 
 int main(int argc, const char **argv)
 {
@@ -136,10 +106,48 @@ int main(int argc, const char **argv)
 
     printf("Суммарное время, затраченное на выполнение целевой функции: %lf секунд\n", time_spent);
     
-    if (png_image_write_to_file(&image, output_name, 0/*convert_to_8bit*/,
-        buffer, 0/*row_stride*/, NULL/*colormap*/) != 0)
-    {
-        /* The image has been written successfully. */
-        exit(0);
+    png_image_write_to_file(&image, output_name, 0/*convert_to_8bit*/, buffer, 0/*row_stride*/, NULL/*colormap*/);
+
+    free(r_buffer);
+    free(g_buffer);
+    free(b_buffer);
+    free(r_new_buffer);
+    free(g_new_buffer);
+    free(b_new_buffer);
+    free(buffer);
+}
+
+void copy_row_chanell(png_bytep dest, png_bytep src, png_uint_32 wight, e_chanell chanell){
+    png_uint_32 copy_index = 0;
+    dest[copy_index++] = src[0];
+    for(png_uint_32 i = 0; i < wight; i++){
+        dest[copy_index++] = src[i * 4 + chanell];
     }
+    dest[copy_index++] = src[(wight - 1) * 4 + chanell];
+}
+
+void copy_chanell_and_expand(png_uint_32 height, png_uint_32 wight, png_bytep dest, png_bytep data, e_chanell chanell){
+    png_uint_32 new_wight = wight + 2;
+    copy_row_chanell(dest, data, wight, chanell);
+    for(png_uint_32 i = 0; i < height; i++){
+        copy_row_chanell(dest + ((i + 1) * new_wight), data + (i * wight * 4), wight, chanell);
+    }
+    copy_row_chanell(dest + (height + 1) * new_wight, data + ((height - 1) * wight * 4), wight, chanell);
+}
+
+png_bytep copy_chanell(png_uint_32 height, png_uint_32 wight, png_bytep data, e_chanell chanell){
+    png_uint_32 size = height * wight;
+    png_bytep res = (png_bytep)malloc(size);
+    for(png_uint_32 i = 0; i < size; i++){
+        res[i] = data[i * 4 + chanell];
+    }
+    return res;
+}
+
+void recollect(png_uint_32 height, png_uint_32 wight, png_bytep dest, png_bytep red, png_bytep green, png_bytep blue){
+    for(png_uint_32 i = 0; i < height * wight; i++){
+        dest[i * 4 + chanell_r] = red[i];
+        dest[i * 4 + chanell_g] = green[i];
+        dest[i * 4 + chanell_b] = blue[i];
+    };
 }
