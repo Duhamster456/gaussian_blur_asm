@@ -8,8 +8,8 @@
 
 #include <time.h>
 
-#define BLUR_POWER 10
-#define POINTLESS_REPETIONS 1000
+#define BLUR_POWER 3
+#define POINTLESS_REPETIONS 100
 
 typedef enum e_chanell{
     chanell_r = 0,
@@ -63,7 +63,21 @@ void recollect(png_uint_32 height, png_uint_32 wight, png_bytep dest, png_bytep 
 
 int main(int argc, const char **argv)
 {
-    if(argc != 3){
+    const char *input_name;
+    const char *output_name;
+
+    switch(argc){
+        case 1:
+        input_name = "pictures/cat.png";
+        output_name = "pictures/res.png";
+        break;
+
+        case 3:
+        input_name = argv[1];
+        output_name = argv[2];
+        break;
+
+        default:
         fprintf(stderr, "usage: %s input-file output-file\n", argv[0]);
         exit(2);
     }
@@ -73,7 +87,7 @@ int main(int argc, const char **argv)
     memset(&image, 0, (sizeof image));
     image.version = PNG_IMAGE_VERSION;
 
-    if (png_image_begin_read_from_file(&image, argv[1]) == 0){
+    if (png_image_begin_read_from_file(&image, input_name) == 0){
         fprintf(stderr, "pngtopng: error: %s\n", image.message);
         exit(1);
     }
@@ -122,7 +136,7 @@ int main(int argc, const char **argv)
 
     printf("Суммарное время, затраченное на выполнение целевой функции: %lf секунд\n", time_spent);
     
-    if (png_image_write_to_file(&image, argv[2], 0/*convert_to_8bit*/,
+    if (png_image_write_to_file(&image, output_name, 0/*convert_to_8bit*/,
         buffer, 0/*row_stride*/, NULL/*colormap*/) != 0)
     {
         /* The image has been written successfully. */

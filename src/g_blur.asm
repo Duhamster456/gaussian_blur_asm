@@ -9,33 +9,86 @@ global gaussian_blur
 gaussian_blur:
     push rbp
     mov rbp, rsp
-    sub rsp, 8
+    sub rsp, 32
 ; внутри функции:
 ; r8 - индекс строки, r9 - индекс столбца в итоговом буфере
-; rax - индекс в буфере назначения
+; r11 - индекс в буфере назначения
 ; r10 - индекс в исходном буфере
     xor r8, r8
+    mov [rbp - 8], rdx ; mul меняет значение rdx, сохраняем его на стеке
+    mov [rbp - 16], r12; по соглашению надо сохранять
+    mov [rbp - 24], r13
     r8_loop:
-    ; rax = i * wight + dest
-    mov rax, r8
-    ;mul rax, rsi!!!!!!!!!!!!!!!!!!
-    add rax, rdx
+        ; r11 = r8 * wight + dest
+        mov rax, r8
+        mul rsi
+        add rax, [rbp - 8]
+        mov r11, rax 
 
-    ; r10 = i * (wight + 2) + src
-    mov r10, rsi
-    add r10, 2
-    ;mul r10, r8!!!!!!!!!!!!!!!!!!!
-    add r10, rcx
+        ; r10 = r8 * (wight + 2) + src
+        
+        mov rax, rsi
+        add rax, 2
+        mul r8
+        add rax, rcx
+        mov r10, rax
+        
 
-    xor r9, r9
-    r9_loop:
-    inc rax
-    inc r10
-
-    mov r11, rsi
-    add r11, 2
-    mul r11, 
-
+        xor r9, r9
+        r9_loop:
+            ; r12 - новое значение бита
+            ; r13 - для временного хранения прибавляемого значение
+            ; срединное значение с коэффициентом 4
+            mov rax, rsi
+            add rax, 2
+            add rax, r10
+            movzx r12, byte [rax]
+            sal r12, 1
+            ; значения с коэффициентом 2
+            mov rax, r10
+            inc rax
+            movzx r13, byte[rax]
+            add r12, r13
+            add rax, rsi
+            inc rax
+            movzx r13, byte[rax]
+            add r12, r13
+            add rax, 2
+            movzx r13, byte[rax]
+            add r12, r13
+            add rax, rsi
+            inc rax
+            movzx r13, byte[rax]
+            add r12, r13
+            sal r12, 1
+            ;значения с коэффициентом 1
+            mov rax, r10
+            movzx r13, byte[rax]
+            add r12, r13
+            add rax, 2
+            movzx r13, byte[rax]
+            add r12, r13
+            add rax, rsi
+            add rax, rsi
+            add rax, 4
+            movzx r13, byte[rax]
+            add r12, r13
+            add rax, 2
+            movzx r13, byte[rax]
+            add r12, r13
+            ;делим на 16
+            shr r12, 4
+            mov byte [r11], r12b
+            inc r9
+            inc r10
+            inc r11
+            cmp r9, rsi
+            jb r9_loop
+        inc r8
+        cmp r8, rdi
+        jb r8_loop
+    mov r12, [rbp - 16]
+    mov r13, [rbp - 24]
     leave
     ret
 
