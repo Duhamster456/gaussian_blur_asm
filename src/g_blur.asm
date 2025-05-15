@@ -39,25 +39,20 @@ gaussian_blur:
             ; r12 - новое значение бита
             ; r13 - для временного хранения прибавляемого значение
             ; срединное значение с коэффициентом 4
-            mov rax, rsi
-            add rax, 2
-            add rax, r10
+            lea rax, [rsi + r10 + 2]
             movzx r12, byte [rax]
             sal r12, 1
             ; значения с коэффициентом 2
-            mov rax, r10
-            inc rax
+            lea rax, [r10 + 1]
             movzx r13, byte[rax]
             add r12, r13
-            add rax, rsi
-            inc rax
+            lea rax, [r10 + rsi + 2]
             movzx r13, byte[rax]
             add r12, r13
             add rax, 2
             movzx r13, byte[rax]
             add r12, r13
-            add rax, rsi
-            inc rax
+            lea rax, [r10 + rsi * 2 + 5]
             movzx r13, byte[rax]
             add r12, r13
             sal r12, 1
@@ -68,9 +63,7 @@ gaussian_blur:
             add rax, 2
             movzx r13, byte[rax]
             add r12, r13
-            add rax, rsi
-            add rax, rsi
-            add rax, 4
+            lea rax, [r10 + rsi * 2 + 4]
             movzx r13, byte[rax]
             add r12, r13
             add rax, 2
